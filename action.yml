@@ -1,0 +1,14 @@
+# action.yml
+name: 'Run detekt-hint'
+description: 'Running the task detektHint and comments on your PR'
+
+inputs:
+  github-api-token:
+    description: "A token for Danger to use"
+    required: true
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.github-api-token }}

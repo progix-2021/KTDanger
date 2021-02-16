@@ -20,5 +20,5 @@ ENV PATH $PATH:/usr/lib/kotlinc/bin
 
 COPY Dangerfile.df.kts /Dangerfile.df.kts
 COPY entrypoint.sh /entrypoint.sh
-
+RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]

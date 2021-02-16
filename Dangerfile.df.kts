@@ -6,13 +6,14 @@ import systems.danger.kotlin.warn
 import systems.danger.kotlin.message
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
+import systems.danger.kotlin.*
 
+danger(args) {
 
 val xmlFile: File = File("detekt-hint-report.xml")
 val xmlDoc: Document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xmlFile)
 xmlDoc.documentElement.normalize()
 
-val danger = Danger(args)
 val allSourceFiles = danger.git.modifiedFiles + danger.git.createdFiles
 allSourceFiles.forEach { println(it.toString()) }
 val fileList: NodeList = xmlDoc.getElementsByTagName("file")
@@ -43,4 +44,4 @@ for (i in 0 until fileList.length) {
         }
     }
 }
-
+}

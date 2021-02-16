@@ -1,47 +1,47 @@
-import org.w3c.dom.Document
-import org.w3c.dom.Element
-import org.w3c.dom.NodeList
-import systems.danger.kotlin.Danger
-import systems.danger.kotlin.warn
-import systems.danger.kotlin.message
-import java.io.File
-import javax.xml.parsers.DocumentBuilderFactory
+// Dangerfile.df.kts
+/*
+ * Use external dependencies using the following annotations:
+ */
+@file:Repository("https://repo.maven.apache.org")
+@file:DependsOn("org.apache.commons:commons-text:1.6")
+
+import org.apache.commons.text.WordUtils
 import systems.danger.kotlin.*
+
+// register plugin MyDangerPlugin
 
 danger(args) {
 
-val xmlFile: File = File("detekt-hint-report.xml")
-val xmlDoc: Document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xmlFile)
-xmlDoc.documentElement.normalize()
+    val allSourceFiles = git.modifiedFiles + git.createdFiles
+    val changelogChanged = allSourceFiles.contains("CHANGELOG.md")
+    val sourceChanges = allSourceFiles.firstOrNull { it.contains("src") }
 
-val allSourceFiles = danger.git.modifiedFiles + danger.git.createdFiles
-allSourceFiles.forEach { println(it.toString()) }
-val fileList: NodeList = xmlDoc.getElementsByTagName("file")
+    onGitHub {
+        val isTrivial = pullRequest.title.contains("#trivial")
 
-for (i in 0 until fileList.length) {
-    var fileNode = fileList.item(i) as Element
+        // Changelog
+        if (!isTrivial && !changelogChanged && sourceChanges != null) {
+            warn(WordUtils.capitalize("any changes to library code should be reflected in the Changelog.\n\nPlease consider adding a note there and adhere to the [Changelog Guidelines](https://github.com/Moya/contributors/blob/master/Changelog%20Guidelines.md)."))
+        }
 
+        // Big PR Check
+        if ((pullRequest.additions ?: 0) - (pullRequest.deletions ?: 0) > 300) {
+            warn("Big PR, try to keep changes smaller if you can")
+        }
 
-    val fileName = fileNode.getAttribute("name")
-    println("Filename: $fileName")
-
-    for (k in 0 until fileNode.getElementsByTagName("error").length) {
-        val error = fileNode.getElementsByTagName("error").item(k) as Element
-        println("Error")
-
-        val line = error.getAttribute("line")
-        println("Line: $line")
-        val message = error.getAttribute("message")
-        println("Message: $message")
-
-        if (allSourceFiles.any { fileName.trim().contains(it.trim()) }) {
-            // Find the sourcefile without the /github/workflow prefix to its path.
-            val file = allSourceFiles.find { fileName.trim().contains(it.trim()) } ?: fileName
-
-            // Only notify about the warning if the file has been modified in this PR
-            println("Adds warning for $fileName")
-            warn(message, file, line.toInt())
+        // Work in progress check
+        if (pullRequest.title.contains("WIP", false)) {
+            warn("PR is classed as Work in Progress")
         }
     }
-}
+
+    onGit {
+        //No Java files check
+        createdFiles.filter {
+            it.endsWith(".java")
+        }.forEach {
+            // Using apache commons-text dependency to be sure the dependency resolution always works
+            warn(WordUtils.capitalize("please consider to create new files in Kotlin"), it, 1)
+        }
+    }
 }

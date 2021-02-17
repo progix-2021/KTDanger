@@ -5,8 +5,13 @@
 @file:Repository("https://repo.maven.apache.org")
 @file:DependsOn("org.apache.commons:commons-text:1.6")
 
+import org.w3c.dom.Document
+import org.w3c.dom.Element
+import org.w3c.dom.NodeList
 import org.apache.commons.text.WordUtils
 import systems.danger.kotlin.*
+import java.io.File
+import javax.xml.parsers.DocumentBuilderFactory
 
 // register plugin MyDangerPlugin
 
@@ -17,7 +22,7 @@ danger(args) {
     val sourceChanges = allSourceFiles.firstOrNull { it.contains("src") }
 
     onGitHub {
-        val allSourceFiles = danger.git.modifiedFiles + danger.git.createdFiles
+        val xmlFile: File = File("detekt-hint-report.xml")
         allSourceFiles.forEach { println(it.toString()) }
         val isTrivial = pullRequest.title.contains("#trivial")
 

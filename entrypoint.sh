@@ -11,4 +11,4 @@ java -jar detekt --input . -cp . --report xml:detekt-hint-report.xml --includes 
 
 ls
 
-danger-kotlin ci --dangerfile /Dangerfile.df.kts --verbose
+danger ci --dangerfile /Dangerfile.ts --verbose
